@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name='viewport' content='initial-scale=1.0, width=device-width'>
 	<title>Send metrics</title>
 	<style type="text/css">
     .cats-container {
@@ -15,10 +16,17 @@
       margin-bottom: 10px;
       height: 300px;
     }
+
+    .button {
+      font-size: 24px;
+      margin: 30px auto 0;
+      display: block;
+      padding: 13px 15px;
+    }
 	</style>
 </head>
 <body>
-  <button type='button'>load cats</button>
+  <button class='button' type='button'>load cats</button>
   <div class='cats-container'></div>
 	<script src="send.js"></script>
   <script src="https://unpkg.com/bowser@2.7.0/es5.js"></script>
