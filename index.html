@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Send metrics</title>
+	<style type="text/css">
+    .cats-container {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .cat {
+      margin-right: 10px;
+      margin-bottom: 10px;
+      height: 300px;
+    }
+	</style>
+</head>
+<body>
+  <button type='button'>load cats</button>
+  <div class='cats-container'></div>
+	<script src="send.js"></script>
+  <script src="https://unpkg.com/bowser@2.7.0/es5.js"></script>
+	<script>
+
+		let counter = new Counter();
+
+    const isTouch = 'ontouchstart' in window || navigator.msMaxTouchPoints;
+
+    const getBrowser = () => {
+      const result = bowser.getParser(window.navigator.userAgent);
+      return result.parsedResult.browser.name;
+    }
+
+    const getOSName = () => {
+      const result = bowser.getParser(window.navigator.userAgent);
+      return result.parsedResult.os.name;
+    }
+
+		counter.init('D8F28E50-3339-11EC-9EDF-9F93090714B7', String(Math.random()).substr(2, 12), 'main');
+		counter.setAdditionalParams({
+			env: 'production',
+			platform: isTouch ? 'touch' : 'desktop',
+      browser: getBrowser(),
+      os: getOSName(),
+		});
+
+		counter.send('load', performance.timing.loadEventEnd - performance.timing.loadEventStart);
+		counter.send('domContentLoad', performance.timing.domContentLoadedEventEnd - performance.timing.domContentLoadedEventEnd);
+
+		new PerformanceObserver(entryList => {
+			for (let entry of entryList.getEntries()) {
+				counter.send('firstInputDelay', entry.processingStart - entry.startTime)
+			}
+		}).observe({ type: 'first-input' })
+
+    const loadCats = async () => {
+      const catsContainer = document.querySelector('.cats-container');
+        
+      const catsRequestStart = Date.now();
+      const response = await fetch('https://api.thecatapi.com/v1/images/search?limit=15');
+      counter.send('catsLoad', Date.now() - catsRequestStart);
+
+      const jsonParseStart = Date.now();
+      const cats = await response.json();
+      counter.send('jsonParse', Date.now() - jsonParseStart);
+
+      const catsDisplayStart = Date.now();
+      cats.forEach(({ url, id }) => {
+        const img = document.createElement('img');
+        img.setAttribute('src', url);
+        img.setAttribute('alt', id);
+        img.setAttribute('class', 'cat')
+
+        catsContainer.appendChild(img);
+      })
+
+      requestAnimationFrame(() => {
+        counter.send('catsDisplay', Date.now() - catsDisplayStart);
+      })
+    }
+
+    const button = document.querySelector('button');
+    button.addEventListener('click', loadCats);
+		
+	</script>
+</body>
+</html>
