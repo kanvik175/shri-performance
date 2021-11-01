@@ -44,7 +44,10 @@ function prepareData(result) {
 
 function makeTable(data, page, metrics, func, ...params) {
    return metrics.reduce((table, metric) => {
-    table[metric] = func(data, page, metric, ...params);
+    const metricData = func(data, page, metric, ...params);
+    if (metricData.hits) {
+      table[metric] = metricData;
+    }
     return table;
   }, {});
 }
@@ -66,6 +69,11 @@ function calcMetricsByDate(data, page, date) {
 	console.log(`All metrics for ${date}:`);
 
   const table = makeTable(data, page, metrics, addMetricByDate, date)
+
+  if (!Object.keys(table).length) {
+    console.log('No data');
+    return;
+  }
 
 	console.table(table);
 };
@@ -142,7 +150,7 @@ fetch('https://shri.yandex/hw/stat/data?counterId=D8F28E50-3339-11EC-9EDF-9F9309
     calcMetricsByDate(data, pageName, currentDate);
 
     const startDate = '2021-10-28';
-    const endDate = '2021-10-30';
+    const endDate = currentDate;
 
     calcMetricsByPeriod(data, pageName, startDate, endDate);
 
